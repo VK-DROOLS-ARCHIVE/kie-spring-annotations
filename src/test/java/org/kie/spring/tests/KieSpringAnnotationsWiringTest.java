@@ -30,11 +30,9 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.util.Collection;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
-public class KieSpringAnnotationsTest {
+public class KieSpringAnnotationsWiringTest {
 
     static ApplicationContext context = null;
 
@@ -46,32 +44,6 @@ public class KieSpringAnnotationsTest {
     @Test
     public void testContext() throws Exception {
         assertNotNull(context);
-    }
-
-    @Test
-    public void testKieBase() throws Exception {
-        KieBase kbase = (KieBase) context.getBean("drl_kiesample3");
-        assertNotNull(kbase);
-        AnnotatedExampleBean sampleBean = (AnnotatedExampleBean) context.getBean("sampleBean");
-        assertNotNull(sampleBean);
-        assertNotNull(sampleBean.getKieBase() );
-        assertTrue(sampleBean.getKieBase() instanceof KieBase );
-    }
-
-    @Test
-    public void testSetterKieBase() throws Exception {
-        AnnotatedExampleBean sampleBean = (AnnotatedExampleBean) context.getBean("sampleBean");
-        assertNotNull(sampleBean);
-        assertNotNull(sampleBean.getKieBase2() );
-        assertTrue(sampleBean.getKieBase2() instanceof KieBase );
-    }
-
-    @Test
-    public void testStatelessKSessionInjection() throws Exception {
-        AnnotatedExampleBean sampleBean = (AnnotatedExampleBean) context.getBean("sampleBean");
-        assertNotNull(sampleBean);
-        assertNotNull(sampleBean.getKieSession() );
-        assertTrue(sampleBean.getKieSession() instanceof StatelessKieSession);
     }
 
     @Test
@@ -91,13 +63,6 @@ public class KieSpringAnnotationsTest {
         fail();
     }
 
-    @Test
-    public void testStatefulKSessionInjection() throws Exception {
-        AnnotatedExampleBean sampleBean = (AnnotatedExampleBean) context.getBean("sampleBean");
-        assertNotNull(sampleBean);
-        assertNotNull(sampleBean.getStatefulSession() );
-        assertTrue(sampleBean.getStatefulSession() instanceof KieSession);
-    }
 
     @AfterClass
     public static void tearDown() {
