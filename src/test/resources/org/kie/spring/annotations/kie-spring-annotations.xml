@@ -16,7 +16,7 @@
 
   </kie:kmodule>
 
-  <bean id="kiePostProcessor" class="org.kie.spring.KModuleAnnotationPostProcessor"/>
+  <bean id="kiePostProcessor" class="org.kie.spring.annotations.KModuleAnnotationPostProcessor"/>
 
   <bean id="sampleBean" class="org.kie.spring.beans.AnnotatedExampleBean"/>
   <bean id="agendaListener" class="org.kie.spring.annotated.ConsoleAgendaEventListener"/>
