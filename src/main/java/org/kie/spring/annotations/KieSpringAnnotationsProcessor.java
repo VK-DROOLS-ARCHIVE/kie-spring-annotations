@@ -1,13 +1,18 @@
 package org.kie.spring.annotations;
 
+import org.drools.core.impl.KnowledgeBaseImpl;
+import org.drools.core.util.StringUtils;
 import org.kie.api.KieBase;
+import org.kie.api.KieServices;
 import org.kie.api.cdi.KBase;
+import org.kie.api.cdi.KContainer;
 import org.kie.api.cdi.KSession;
 import org.kie.api.event.KieRuntimeEventManager;
 import org.kie.api.event.process.ProcessEventListener;
 import org.kie.api.event.rule.AgendaEventListener;
 import org.kie.api.event.rule.RuleRuntimeEventListener;
 import org.kie.api.runtime.CommandExecutor;
+import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.StatelessKieSession;
 import org.kie.spring.KieObjectsResolver;
@@ -168,7 +173,8 @@ class KieSpringAnnotationsProcessor implements InstantiationAwareBeanPostProcess
         for (Method method : targetClass.getDeclaredMethods()) {
             KSession kSession = method.getAnnotation(KSession.class);
             KBase kBase = method.getAnnotation(KBase.class);
-            if ((kSession != null || kBase != null) &&
+            KContainer kContainer = method.getAnnotation(KContainer.class);
+            if ((kSession != null || kBase != null || kContainer !=null) &&
                     method.equals(ClassUtils.getMostSpecificMethod(method, targetClass))) {
                 if (Modifier.isStatic(method.getModifiers())) {
                     throw new IllegalStateException("Kie Annotations are not supported on static methods");
@@ -181,6 +187,8 @@ class KieSpringAnnotationsProcessor implements InstantiationAwareBeanPostProcess
                     currElements.add(new KSessionInjectedElement(method, pd));
                 } else if (kBase != null ) {
                     currElements.add(new KBaseInjectedElement(method, pd));
+                } else if (kContainer != null ) {
+                    currElements.add(new KContainerInjectedElement(method, pd));
                 }
             }
         }
@@ -201,6 +209,13 @@ class KieSpringAnnotationsProcessor implements InstantiationAwareBeanPostProcess
                     throw new IllegalStateException("Kie Annotations are not supported on static fields");
                 }
                 currElements.add(new KSessionInjectedElement(field, null));
+            }
+            KContainer kContainer = field.getAnnotation(KContainer.class);
+            if (kContainer != null) {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    throw new IllegalStateException("Kie Annotations are not supported on static fields");
+                }
+                currElements.add(new KContainerInjectedElement(field, null));
             }
         }
     }
@@ -226,6 +241,17 @@ class KieSpringAnnotationsProcessor implements InstantiationAwareBeanPostProcess
             checkResourceType(KieBase.class);
         }
 
+        protected Object getResourceToInject(Object target, String requestingBeanName) {
+            if (StringUtils.isEmpty(name)) {
+                //check for default KieBase
+                Map<String, KieBase> kieBaseMap = beanFactory.getBeansOfType(KieBase.class);
+                for (KieBase kieBase: kieBaseMap.values()){
+
+                }
+            }
+            return beanFactory.getBean(name);
+        }
+
     }
 
     private class KSessionInjectedElement extends KieElementInjectedElement {
@@ -238,6 +264,21 @@ class KieSpringAnnotationsProcessor implements InstantiationAwareBeanPostProcess
             name = kSessionAnnotation.value();
 
             checkResourceType(CommandExecutor.class);
+        }
+    }
+
+    private class KContainerInjectedElement extends KieElementInjectedElement {
+
+        public KContainerInjectedElement(Member member, PropertyDescriptor pd) {
+            super(member, pd);
+            AnnotatedElement ae = (AnnotatedElement) member;
+            KContainer kContainer = ae.getAnnotation(KContainer.class);
+
+            checkResourceType(KieContainer.class);
+        }
+
+        protected Object getResourceToInject(Object target, String requestingBeanName) {
+            return KieServices.Factory.get().getKieClasspathContainer();
         }
     }
 
