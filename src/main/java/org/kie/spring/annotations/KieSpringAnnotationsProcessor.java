@@ -1,10 +1,13 @@
 package org.kie.spring.annotations;
 
 import org.kie.api.KieBase;
+import org.kie.api.cdi.KBase;
+import org.kie.api.cdi.KSession;
 import org.kie.api.event.KieRuntimeEventManager;
 import org.kie.api.event.process.ProcessEventListener;
 import org.kie.api.event.rule.AgendaEventListener;
-import org.kie.api.event.rule.WorkingMemoryEventListener;
+import org.kie.api.event.rule.RuleRuntimeEventListener;
+import org.kie.api.runtime.CommandExecutor;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.StatelessKieSession;
 import org.kie.spring.KieObjectsResolver;
@@ -219,7 +222,7 @@ class KieSpringAnnotationsProcessor implements InstantiationAwareBeanPostProcess
             super(member, pd);
             AnnotatedElement ae = (AnnotatedElement) member;
             KBase aeAnnotation = ae.getAnnotation(KBase.class);
-            name = aeAnnotation.name();
+            name = aeAnnotation.value();
             checkResourceType(KieBase.class);
         }
 
@@ -232,14 +235,9 @@ class KieSpringAnnotationsProcessor implements InstantiationAwareBeanPostProcess
             super(member, pd);
             AnnotatedElement ae = (AnnotatedElement) member;
             KSession kSessionAnnotation = ae.getAnnotation(KSession.class);
-            type = kSessionAnnotation.type();
-            name = kSessionAnnotation.name();
+            name = kSessionAnnotation.value();
 
-            if ( "stateless".equalsIgnoreCase(type)){
-                checkResourceType(StatelessKieSession.class);
-            } else {
-                checkResourceType(KieSession.class);
-            }
+            checkResourceType(CommandExecutor.class);
         }
     }
 
@@ -259,9 +257,9 @@ class KieSpringAnnotationsProcessor implements InstantiationAwareBeanPostProcess
                 kieRuntimeEventManager.addEventListener((AgendaEventListener)target);
                 System.out.println("********* Adding Agenda Listener to "+name+"  ( Listener - "+target+") ************** ");
             }
-            if ( target instanceof WorkingMemoryEventListener  &&
-                    (type == KListener.LISTENER_TYPE.DERIVE || type == KListener.LISTENER_TYPE.WORKING_MEMORY)) {
-                kieRuntimeEventManager.addEventListener((WorkingMemoryEventListener)target);
+            if ( target instanceof RuleRuntimeEventListener  &&
+                    (type == KListener.LISTENER_TYPE.DERIVE || type == KListener.LISTENER_TYPE.RULE_RUNTIME)) {
+                kieRuntimeEventManager.addEventListener((RuleRuntimeEventListener)target);
                 System.out.println("********* Adding WorkingMemory Listener to " + name + "  ( Listener - " + target + ") ************** ");
             }
             if ( target instanceof ProcessEventListener  &&

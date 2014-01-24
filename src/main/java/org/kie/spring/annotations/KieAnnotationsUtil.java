@@ -8,7 +8,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class KieAnnotationsUtil {
+class KieAnnotationsUtil {
 
     private static final String KIE_ANNOTATION_PROCESSOR_CLASS_NAME =
             "org.kie.spring.annotations.KieSpringAnnotationsProcessor";

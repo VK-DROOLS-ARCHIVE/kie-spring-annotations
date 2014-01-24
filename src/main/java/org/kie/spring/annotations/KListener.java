@@ -11,5 +11,5 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface KListener {
     String ksession();
     LISTENER_TYPE type() default LISTENER_TYPE.DERIVE;
-    public enum LISTENER_TYPE { DERIVE, AGENDA, WORKING_MEMORY, PROCESS_EVENT };
+    public enum LISTENER_TYPE { DERIVE, AGENDA, RULE_RUNTIME, PROCESS_EVENT };
 }

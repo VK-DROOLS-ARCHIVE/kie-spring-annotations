@@ -1,29 +1,46 @@
 package org.kie.spring.beans;
 
 import org.kie.api.KieBase;
+import org.kie.api.cdi.KBase;
+import org.kie.api.cdi.KReleaseId;
+import org.kie.api.cdi.KSession;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.StatelessKieSession;
-import org.kie.spring.annotations.KBase;
-import org.kie.spring.annotations.KSession;
+
+import javax.annotation.Resource;
+import javax.inject.Inject;
 
 public class AnnotatedExampleBean {
 
-    @KSession(name = "ksession1", type = "stateless")
+    @KSession("ksession1")
     StatelessKieSession ksession1;
 
-    @KSession(name="ksession2")
+    @KSession("ksession2")
     KieSession statefulSession;
 
-    @KBase(name="drl_kiesample3")
+    @KBase("drl_kiesample3")
     KieBase kieBase;
 
+    // inject the default kbase.
+    @KBase
     KieBase kieBase2;
+
+//    @Resource(name = "ksession2")
+    private KieSession session;
+
+    public KieSession getSession() {
+        return session;
+    }
+
+    public void setSession(KieSession session) {
+        this.session = session;
+    }
 
     public KieBase getKieBase2() {
         return kieBase2;
     }
 
-    @KBase(name="drl_kiesample3")
+    @KBase("drl_kiesample3")
     public void setKieBase2(KieBase kieBase2) {
         this.kieBase2 = kieBase2;
     }

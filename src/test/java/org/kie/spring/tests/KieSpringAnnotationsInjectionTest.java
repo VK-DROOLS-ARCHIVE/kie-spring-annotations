@@ -66,6 +66,14 @@ public class KieSpringAnnotationsInjectionTest {
         assertTrue(sampleBean.getKieBase2() instanceof KieBase );
     }
 
+//    @Test
+//    public void testResourceKieSession() throws Exception {
+//        AnnotatedExampleBean sampleBean = (AnnotatedExampleBean) context.getBean("sampleBean");
+//        assertNotNull(sampleBean);
+//        assertNotNull(sampleBean.getSession() );
+//        assertTrue(sampleBean.getSession() instanceof StatelessKieSession);
+//    }
+
     @Test
     public void testStatelessKSessionInjection() throws Exception {
         AnnotatedExampleBean sampleBean = (AnnotatedExampleBean) context.getBean("sampleBean");
