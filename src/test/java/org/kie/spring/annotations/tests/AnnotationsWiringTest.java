@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.kie.spring.tests;
+package org.kie.spring.annotations.tests;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.kie.api.KieBase;
 import org.kie.api.event.rule.AgendaEventListener;
-import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.StatelessKieSession;
 import org.kie.spring.annotated.ConsoleAgendaEventListener;
-import org.kie.spring.beans.AnnotatedExampleBean;
+import org.kie.spring.beans.NamedKieBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -32,7 +30,7 @@ import java.util.Collection;
 
 import static org.junit.Assert.*;
 
-public class KieSpringAnnotationsWiringTest {
+public class AnnotationsWiringTest {
 
     static ApplicationContext context = null;
 
@@ -48,7 +46,7 @@ public class KieSpringAnnotationsWiringTest {
 
     @Test
     public void testAutoWiredAgendaListener() throws Exception {
-        AnnotatedExampleBean sampleBean = (AnnotatedExampleBean) context.getBean("sampleBean");
+        NamedKieBean sampleBean = (NamedKieBean) context.getBean("sampleBean");
         assertNotNull(sampleBean);
         assertNotNull(sampleBean.getKieSession() );
         assertTrue(sampleBean.getKieSession() instanceof StatelessKieSession);

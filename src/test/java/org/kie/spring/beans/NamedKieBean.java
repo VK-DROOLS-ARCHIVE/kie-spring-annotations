@@ -10,7 +10,7 @@ import org.kie.api.runtime.StatelessKieSession;
 import javax.annotation.Resource;
 import javax.inject.Inject;
 
-public class AnnotatedExampleBean {
+public class NamedKieBean {
 
     @KSession("ksession1")
     StatelessKieSession ksession1;
@@ -21,20 +21,7 @@ public class AnnotatedExampleBean {
     @KBase("drl_kiesample3")
     KieBase kieBase;
 
-    // inject the default kbase.
-    @KBase
     KieBase kieBase2;
-
-//    @Resource(name = "ksession2")
-    private KieSession session;
-
-    public KieSession getSession() {
-        return session;
-    }
-
-    public void setSession(KieSession session) {
-        this.session = session;
-    }
 
     public KieBase getKieBase2() {
         return kieBase2;
