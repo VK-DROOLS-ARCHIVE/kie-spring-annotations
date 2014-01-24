@@ -14,33 +14,28 @@
  * limitations under the License.
  */
 
-package org.kie.spring.tests;
+package org.kie.spring.annotations.tests;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.kie.api.KieBase;
-import org.kie.api.event.rule.AgendaEventListener;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.StatelessKieSession;
-import org.kie.spring.annotated.ConsoleAgendaEventListener;
-import org.kie.spring.beans.AnnotatedExampleBean;
+import org.kie.spring.beans.NamedKieBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import java.util.Collection;
-
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
-public class KieSpringAnnotationsInjectionTest {
+public class DefaultsInjectionTest {
 
     static ApplicationContext context = null;
 
     @BeforeClass
     public static void setup() {
-        context = new ClassPathXmlApplicationContext("org/kie/spring/annotations/kie-spring-annotations.xml");
+        context = new ClassPathXmlApplicationContext("org/kie/spring/annotations/default-values.xml");
     }
 
     @Test
@@ -52,7 +47,7 @@ public class KieSpringAnnotationsInjectionTest {
     public void testKieBase() throws Exception {
         KieBase kbase = (KieBase) context.getBean("drl_kiesample3");
         assertNotNull(kbase);
-        AnnotatedExampleBean sampleBean = (AnnotatedExampleBean) context.getBean("sampleBean");
+        NamedKieBean sampleBean = (NamedKieBean) context.getBean("sampleBean");
         assertNotNull(sampleBean);
         assertNotNull(sampleBean.getKieBase() );
         assertTrue(sampleBean.getKieBase() instanceof KieBase );
@@ -60,35 +55,12 @@ public class KieSpringAnnotationsInjectionTest {
 
     @Test
     public void testSetterKieBase() throws Exception {
-        AnnotatedExampleBean sampleBean = (AnnotatedExampleBean) context.getBean("sampleBean");
+        NamedKieBean sampleBean = (NamedKieBean) context.getBean("sampleBean");
         assertNotNull(sampleBean);
         assertNotNull(sampleBean.getKieBase2() );
         assertTrue(sampleBean.getKieBase2() instanceof KieBase );
     }
 
-//    @Test
-//    public void testResourceKieSession() throws Exception {
-//        AnnotatedExampleBean sampleBean = (AnnotatedExampleBean) context.getBean("sampleBean");
-//        assertNotNull(sampleBean);
-//        assertNotNull(sampleBean.getSession() );
-//        assertTrue(sampleBean.getSession() instanceof StatelessKieSession);
-//    }
-
-    @Test
-    public void testStatelessKSessionInjection() throws Exception {
-        AnnotatedExampleBean sampleBean = (AnnotatedExampleBean) context.getBean("sampleBean");
-        assertNotNull(sampleBean);
-        assertNotNull(sampleBean.getKieSession() );
-        assertTrue(sampleBean.getKieSession() instanceof StatelessKieSession);
-    }
-
-    @Test
-    public void testStatefulKSessionInjection() throws Exception {
-        AnnotatedExampleBean sampleBean = (AnnotatedExampleBean) context.getBean("sampleBean");
-        assertNotNull(sampleBean);
-        assertNotNull(sampleBean.getStatefulSession() );
-        assertTrue(sampleBean.getStatefulSession() instanceof KieSession);
-    }
 
     @AfterClass
     public static void tearDown() {
