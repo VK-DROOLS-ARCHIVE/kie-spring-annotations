@@ -2,9 +2,6 @@ package org.kie.spring.beans;
 
 import org.kie.api.KieBase;
 import org.kie.api.cdi.KBase;
-import org.kie.api.cdi.KSession;
-import org.kie.api.runtime.KieSession;
-import org.kie.api.runtime.StatelessKieSession;
 
 public class DefaultValuesBean {
 

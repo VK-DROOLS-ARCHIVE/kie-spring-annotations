@@ -25,22 +25,18 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-public class KModuleAnnotationPostProcessor implements BeanFactoryPostProcessor, ApplicationContextAware {
+public class KModuleAnnotationPostProcessor extends KModuleBeanFactoryPostProcessor {
 
     private static final Logger log               = LoggerFactory.getLogger(KModuleAnnotationPostProcessor.class);
-    private KModuleBeanFactoryPostProcessor kModuleBeanFactoryPostProcessor = new KModuleBeanFactoryPostProcessor();
+    //private KModuleBeanFactoryPostProcessor kModuleBeanFactoryPostProcessor = new KModuleBeanFactoryPostProcessor();
 
     public KModuleAnnotationPostProcessor() {
     }
 
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        kModuleBeanFactoryPostProcessor.postProcessBeanFactory(beanFactory);
+        super.postProcessBeanFactory(beanFactory);
 
-        KieAnnotationsUtil.registerAnnotationConfigProcessors((BeanDefinitionRegistry) beanFactory);
+        KieAnnotationsUtil.registerAnnotationConfigProcessors((BeanDefinitionRegistry) beanFactory, releaseId);
     }
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        kModuleBeanFactoryPostProcessor.setApplicationContext(applicationContext);
-    }
 }

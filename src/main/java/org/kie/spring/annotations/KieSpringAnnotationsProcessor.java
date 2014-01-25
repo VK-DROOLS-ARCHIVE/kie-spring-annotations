@@ -1,9 +1,15 @@
 package org.kie.spring.annotations;
 
+import org.drools.compiler.kie.builder.impl.InternalKieModule;
+import org.drools.compiler.kproject.models.KieModuleModelImpl;
 import org.drools.core.impl.KnowledgeBaseImpl;
 import org.drools.core.util.StringUtils;
 import org.kie.api.KieBase;
 import org.kie.api.KieServices;
+import org.kie.api.builder.KieModule;
+import org.kie.api.builder.KieRepository;
+import org.kie.api.builder.ReleaseId;
+import org.kie.api.builder.model.KieModuleModel;
 import org.kie.api.cdi.KBase;
 import org.kie.api.cdi.KContainer;
 import org.kie.api.cdi.KSession;
@@ -16,6 +22,7 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.StatelessKieSession;
 import org.kie.spring.KieObjectsResolver;
+import org.kie.spring.KieSpringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.PropertyValues;
@@ -35,6 +42,7 @@ import org.springframework.util.ReflectionUtils;
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 import java.lang.reflect.*;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,6 +54,16 @@ class KieSpringAnnotationsProcessor implements InstantiationAwareBeanPostProcess
     private transient final Map<Class<?>, InjectionMetadata> wiredMetadataCache = new ConcurrentHashMap<Class<?>, InjectionMetadata>();
     private int order = Ordered.LOWEST_PRECEDENCE - 4;
     private transient ListableBeanFactory beanFactory;
+    private ReleaseId releaseId;
+    private Map<ReleaseId, KieContainer> kieContainerMap = new HashMap<ReleaseId, KieContainer>();
+
+    public ReleaseId getReleaseId() {
+        return releaseId;
+    }
+
+    public void setReleaseId(ReleaseId releaseId) {
+        this.releaseId = releaseId;
+    }
 
     public void setOrder(int order) {
         this.order = order;
@@ -244,10 +262,24 @@ class KieSpringAnnotationsProcessor implements InstantiationAwareBeanPostProcess
         protected Object getResourceToInject(Object target, String requestingBeanName) {
             if (StringUtils.isEmpty(name)) {
                 //check for default KieBase
-                Map<String, KieBase> kieBaseMap = beanFactory.getBeansOfType(KieBase.class);
-                for (KieBase kieBase: kieBaseMap.values()){
-
+                KieContainer kieContainer = kieContainerMap.get(releaseId);
+                if  ( kieContainer == null){
+                    kieContainer = KieServices.Factory.get().newKieContainer(releaseId);
+                    kieContainerMap.put(releaseId, kieContainer);
                 }
+                return kieContainer.getKieBase();
+//                KieRepository kr = ks.getRepository().;
+//                InternalKieModule kieModule = (InternalKieModule) kr.getKieModule(releaseId);
+//                kieModule.getKieModuleModel().
+//                Map<String, KieModuleModel> kieModuleModelMap = beanFactory.getBeansOfType(KieModuleModel.class);
+//                for (KieModuleModel kieBase: kieModuleModelMap.values()){
+//                    ((KieModuleModelImpl)kieBase).getKieBaseModels().values().toArray()[0].
+//                }
+//                return KieServices.Factory.get().getKieClasspathContainer().getKieBase();
+//                Map<String, KieBase> kieBaseMap = beanFactory.getBeansOfType(KieBase.class);
+//                for (KieBase kieBase: kieBaseMap.values()){
+//
+//                }
             }
             return beanFactory.getBean(name);
         }
@@ -278,7 +310,12 @@ class KieSpringAnnotationsProcessor implements InstantiationAwareBeanPostProcess
         }
 
         protected Object getResourceToInject(Object target, String requestingBeanName) {
-            return KieServices.Factory.get().getKieClasspathContainer();
+            KieContainer kieContainer = kieContainerMap.get(releaseId);
+            if  ( kieContainer == null){
+                kieContainer = KieServices.Factory.get().newKieContainer(releaseId);
+                kieContainerMap.put(releaseId, kieContainer);
+            }
+            return kieContainer;
         }
     }
 

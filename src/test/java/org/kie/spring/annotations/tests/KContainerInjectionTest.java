@@ -21,6 +21,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.kie.api.KieBase;
+import org.kie.api.builder.ReleaseId;
 import org.kie.api.runtime.KieContainer;
 import org.kie.spring.beans.KContainerBean;
 import org.kie.spring.beans.NamedKieBean;
@@ -30,7 +31,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-@Ignore
 public class KContainerInjectionTest {
 
     static ApplicationContext context = null;
@@ -51,6 +51,8 @@ public class KContainerInjectionTest {
         assertNotNull(sampleBean);
         assertNotNull(sampleBean.getKieContainer() );
         assertTrue(sampleBean.getKieContainer() instanceof KieContainer );
+        ReleaseId releaseId = sampleBean.getKieContainer().getReleaseId();
+        assertTrue("kie-spring-annotations".equalsIgnoreCase(releaseId.getArtifactId()));
     }
 
     @Test
@@ -59,6 +61,8 @@ public class KContainerInjectionTest {
         assertNotNull(sampleBean);
         assertNotNull(sampleBean.getKieContainer2());
         assertTrue(sampleBean.getKieContainer2() instanceof KieContainer);
+        ReleaseId releaseId = sampleBean.getKieContainer2().getReleaseId();
+        assertTrue("kie-spring-annotations".equalsIgnoreCase(releaseId.getArtifactId()));
     }
 
 

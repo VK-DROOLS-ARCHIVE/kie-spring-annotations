@@ -18,14 +18,15 @@ package org.kie.spring.annotations.tests;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.kie.api.KieBase;
-import org.kie.api.runtime.KieSession;
-import org.kie.api.runtime.StatelessKieSession;
+import org.kie.spring.beans.DefaultValuesBean;
 import org.kie.spring.beans.NamedKieBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -35,7 +36,7 @@ public class DefaultsInjectionTest {
 
     @BeforeClass
     public static void setup() {
-        context = new ClassPathXmlApplicationContext("org/kie/spring/annotations/default-values.xml");
+        context = new ClassPathXmlApplicationContext("org/kie/spring/annotations/kbase-with-default.xml");
     }
 
     @Test
@@ -47,18 +48,20 @@ public class DefaultsInjectionTest {
     public void testKieBase() throws Exception {
         KieBase kbase = (KieBase) context.getBean("drl_kiesample3");
         assertNotNull(kbase);
-        NamedKieBean sampleBean = (NamedKieBean) context.getBean("sampleBean");
+        DefaultValuesBean sampleBean = (DefaultValuesBean) context.getBean("sampleBean");
         assertNotNull(sampleBean);
         assertNotNull(sampleBean.getKieBase() );
-        assertTrue(sampleBean.getKieBase() instanceof KieBase );
+        assertTrue(sampleBean.getKieBase() instanceof KieBase);
     }
 
     @Test
     public void testSetterKieBase() throws Exception {
-        NamedKieBean sampleBean = (NamedKieBean) context.getBean("sampleBean");
+        KieBase kbase = (KieBase) context.getBean("drl_kiesample3");
+        assertNotNull(kbase);
+        DefaultValuesBean sampleBean = (DefaultValuesBean) context.getBean("sampleBean");
         assertNotNull(sampleBean);
         assertNotNull(sampleBean.getKieBase2() );
-        assertTrue(sampleBean.getKieBase2() instanceof KieBase );
+        assertTrue(sampleBean.getKieBase2() instanceof KieBase);
     }
 
 
