@@ -12,6 +12,7 @@ import org.kie.api.builder.ReleaseId;
 import org.kie.api.builder.model.KieModuleModel;
 import org.kie.api.cdi.KBase;
 import org.kie.api.cdi.KContainer;
+import org.kie.api.cdi.KReleaseId;
 import org.kie.api.cdi.KSession;
 import org.kie.api.event.KieRuntimeEventManager;
 import org.kie.api.event.process.ProcessEventListener;
@@ -202,57 +203,83 @@ class KieSpringAnnotationsProcessor implements InstantiationAwareBeanPostProcess
                 }
                 PropertyDescriptor pd = BeanUtils.findPropertyForMethod(method);
                 if ( kSession != null ) {
-                    currElements.add(new KSessionInjectedElement(method, pd));
+                    currElements.add(new KSessionInjectedElement(method, pd, releaseId));
                 } else if (kBase != null ) {
-                    currElements.add(new KBaseInjectedElement(method, pd));
+                    currElements.add(new KBaseInjectedElement(method, pd,releaseId));
                 } else if (kContainer != null ) {
-                    currElements.add(new KContainerInjectedElement(method, pd));
+                    currElements.add(new KContainerInjectedElement(method, pd, releaseId));
                 }
             }
         }
     }
 
     private void checkForFieldInjections(Class<?> targetClass, LinkedList<InjectionMetadata.InjectedElement> currElements) {
+        KieServices ks = KieServices.Factory.get();
         for (Field field : targetClass.getDeclaredFields()) {
+
+            KReleaseId kReleaseId = field.getAnnotation(KReleaseId.class);
+            ReleaseId specificReleaseId = null;
+            if ( kReleaseId != null ) {
+                specificReleaseId = ks.newReleaseId(kReleaseId.groupId(),
+                        kReleaseId.artifactId(),
+                        kReleaseId.version());
+            } else {
+                specificReleaseId = this.releaseId;
+            }
+
             KBase kBase = field.getAnnotation(KBase.class);
             if (kBase != null) {
                 if (Modifier.isStatic(field.getModifiers())) {
                     throw new IllegalStateException("Kie Annotations are not supported on static fields");
                 }
-                currElements.add(new KBaseInjectedElement(field, null));
+                currElements.add(new KBaseInjectedElement(field, null, specificReleaseId));
             }
             KSession kSession = field.getAnnotation(KSession.class);
             if (kSession != null) {
                 if (Modifier.isStatic(field.getModifiers())) {
                     throw new IllegalStateException("Kie Annotations are not supported on static fields");
                 }
-                currElements.add(new KSessionInjectedElement(field, null));
+                currElements.add(new KSessionInjectedElement(field, null, specificReleaseId));
             }
             KContainer kContainer = field.getAnnotation(KContainer.class);
             if (kContainer != null) {
                 if (Modifier.isStatic(field.getModifiers())) {
                     throw new IllegalStateException("Kie Annotations are not supported on static fields");
                 }
-                currElements.add(new KContainerInjectedElement(field, null));
+                currElements.add(new KContainerInjectedElement(field, null, specificReleaseId));
             }
         }
     }
 
     private class KieElementInjectedElement extends InjectionMetadata.InjectedElement {
         protected String name;
-        public KieElementInjectedElement(Member member, PropertyDescriptor pd) {
+        protected ReleaseId releaseId;
+        public KieElementInjectedElement(Member member, PropertyDescriptor pd, ReleaseId releaseId) {
             super(member, pd);
+            setReleaseId(releaseId);
+        }
+
+        public KieElementInjectedElement(Member member, PropertyDescriptor pd) {
+            this(member, pd, null);
         }
 
         protected Object getResourceToInject(Object target, String requestingBeanName) {
             return beanFactory.getBean(name);
         }
+
+        public ReleaseId getReleaseId() {
+            return releaseId;
+        }
+
+        public void setReleaseId(ReleaseId releaseId) {
+            this.releaseId = releaseId;
+        }
     }
 
     private class KBaseInjectedElement extends KieElementInjectedElement {
 
-        public KBaseInjectedElement(Member member, PropertyDescriptor pd) {
-            super(member, pd);
+        public KBaseInjectedElement(Member member, PropertyDescriptor pd, ReleaseId releaseId) {
+            super(member, pd, releaseId);
             AnnotatedElement ae = (AnnotatedElement) member;
             KBase aeAnnotation = ae.getAnnotation(KBase.class);
             name = aeAnnotation.value();
@@ -261,27 +288,24 @@ class KieSpringAnnotationsProcessor implements InstantiationAwareBeanPostProcess
 
         protected Object getResourceToInject(Object target, String requestingBeanName) {
             if (StringUtils.isEmpty(name)) {
-                //check for default KieBase
-                KieContainer kieContainer = kieContainerMap.get(releaseId);
+                //check for default KieBase in the current KieContainer
+                KieContainer kieContainer = kieContainerMap.get(getReleaseId());
                 if  ( kieContainer == null){
-                    kieContainer = KieServices.Factory.get().newKieContainer(releaseId);
+                    kieContainer = KieServices.Factory.get().newKieContainer(getReleaseId());
                     kieContainerMap.put(releaseId, kieContainer);
                 }
                 return kieContainer.getKieBase();
-//                KieRepository kr = ks.getRepository().;
-//                InternalKieModule kieModule = (InternalKieModule) kr.getKieModule(releaseId);
-//                kieModule.getKieModuleModel().
-//                Map<String, KieModuleModel> kieModuleModelMap = beanFactory.getBeansOfType(KieModuleModel.class);
-//                for (KieModuleModel kieBase: kieModuleModelMap.values()){
-//                    ((KieModuleModelImpl)kieBase).getKieBaseModels().values().toArray()[0].
-//                }
-//                return KieServices.Factory.get().getKieClasspathContainer().getKieBase();
-//                Map<String, KieBase> kieBaseMap = beanFactory.getBeansOfType(KieBase.class);
-//                for (KieBase kieBase: kieBaseMap.values()){
-//
-//                }
             }
-            return beanFactory.getBean(name);
+            if( getReleaseId().equals(KieSpringAnnotationsProcessor.this.getReleaseId())) {
+                return beanFactory.getBean(name);
+            } else {
+                KieContainer kieContainer = kieContainerMap.get(getReleaseId());
+                if  ( kieContainer == null){
+                    kieContainer = KieServices.Factory.get().newKieContainer(getReleaseId());
+                    kieContainerMap.put(releaseId, kieContainer);
+                }
+                return kieContainer.getKieBase(name);
+            }
         }
 
     }
@@ -289,8 +313,8 @@ class KieSpringAnnotationsProcessor implements InstantiationAwareBeanPostProcess
     private class KSessionInjectedElement extends KieElementInjectedElement {
 
         String type;
-        public KSessionInjectedElement(Member member, PropertyDescriptor pd) {
-            super(member, pd);
+        public KSessionInjectedElement(Member member, PropertyDescriptor pd, ReleaseId releaseId) {
+            super(member, pd, releaseId);
             AnnotatedElement ae = (AnnotatedElement) member;
             KSession kSessionAnnotation = ae.getAnnotation(KSession.class);
             name = kSessionAnnotation.value();
@@ -301,18 +325,16 @@ class KieSpringAnnotationsProcessor implements InstantiationAwareBeanPostProcess
 
     private class KContainerInjectedElement extends KieElementInjectedElement {
 
-        public KContainerInjectedElement(Member member, PropertyDescriptor pd) {
-            super(member, pd);
+        public KContainerInjectedElement(Member member, PropertyDescriptor pd, ReleaseId releaseId) {
+            super(member, pd, releaseId);
             AnnotatedElement ae = (AnnotatedElement) member;
-            KContainer kContainer = ae.getAnnotation(KContainer.class);
-
             checkResourceType(KieContainer.class);
         }
 
         protected Object getResourceToInject(Object target, String requestingBeanName) {
-            KieContainer kieContainer = kieContainerMap.get(releaseId);
+            KieContainer kieContainer = kieContainerMap.get(getReleaseId());
             if  ( kieContainer == null){
-                kieContainer = KieServices.Factory.get().newKieContainer(releaseId);
+                kieContainer = KieServices.Factory.get().newKieContainer(getReleaseId());
                 kieContainerMap.put(releaseId, kieContainer);
             }
             return kieContainer;
